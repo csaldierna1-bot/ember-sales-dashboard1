@@ -2504,11 +2504,11 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       }
     });
 
-    // YTD Chart — compute avg pace per year
+    // YTD Chart — compute avg pace per year (keys are year*100+month, e.g. 202401)
     function computeYearlyAvg(data, year) {
       let total = 0; let months = 0;
       for (let m = 1; m <= 12; m++) {
-        const k = year + '-' + String(m).padStart(2, '0');
+        const k = year * 100 + m;
         if (data.net[k] !== undefined && data.net[k] !== null) {
           total += data.net[k];
           months++;
@@ -2517,10 +2517,10 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       return months > 0 ? total / months : 0;
     }
     // For 2024: GPD had sales all year (12 months), HLD started Jun so count from Jun-Dec (7 months)
-    const gpd2024Total = [1,2,3,4,5,6,7,8,9,10,11,12].reduce((s,m) => s + (gpdData.net['2024-'+String(m).padStart(2,'0')] || 0), 0);
+    const gpd2024Total = [1,2,3,4,5,6,7,8,9,10,11,12].reduce((s,m) => s + (gpdData.net[2024*100+m] || 0), 0);
     const gpd2024Avg = gpd2024Total / 12;
-    const hld2024Total = [6,7,8,9,10,11,12].reduce((s,m) => s + (hldData.net['2024-'+String(m).padStart(2,'0')] || 0), 0);
-    const hld2024Months = [6,7,8,9,10,11,12].filter(m => hldData.net['2024-'+String(m).padStart(2,'0')] !== undefined).length || 7;
+    const hld2024Total = [6,7,8,9,10,11,12].reduce((s,m) => s + (hldData.net[2024*100+m] || 0), 0);
+    const hld2024Months = [6,7,8,9,10,11,12].filter(m => hldData.net[2024*100+m] !== undefined).length || 7;
     const hld2024Avg = hld2024Total / hld2024Months;
     const gpd2025Avg = computeYearlyAvg(gpdData, 2025);
     const hld2025Avg = computeYearlyAvg(hldData, 2025);
@@ -2690,7 +2690,7 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
 
     function getYearMonthNet(data, year) {
       return seasonalityLabels.map((_, i) => {
-        const k = year + '-' + String(i + 1).padStart(2, '0');
+        const k = year * 100 + (i + 1);
         const v = data.net[k];
         return (v !== undefined && v !== null) ? v : null;
       });
