@@ -1057,8 +1057,8 @@ window.chartRegistry.tgpPaceChart = new Chart(document.getElementById('tgpPaceCh
   data: {
     labels: ['DWH 40','Perry 40','Village 45','Westin 45','Perry 50','DWH 50','Westin 60','Sitterle 60'],
     datasets: [
-      { label: 'Avg Pace 2024', data: [2.83,3.08,6.25,2,2.67,3.25,0.83,0.08], backgroundColor: COLORS.tgp, borderRadius: 3 },
-      { label: 'Avg Pace 2025', data: [2.08,2.33,0.25,2.75,1.17,0.50,2.17,0.50], backgroundColor: '#003552', borderRadius: 3 },
+      { label: 'Avg Pace 2024', data: [2.83,3.08,6.25,2,2.67,3.25,0.83,0.08], backgroundColor: '#003552', borderRadius: 3 },
+      { label: 'Avg Pace 2025', data: [2.08,2.33,0.25,2.75,1.17,0.50,2.17,0.50], backgroundColor: '#38a169', borderRadius: 3 },
       { label: 'Avg Pace 2026 YTD (Jan–Mar)', data: [1.33,0,2.67,1.33,1.33,2,0,0.33], backgroundColor: '#f6ad55', borderRadius: 3 },
     ]
   },
@@ -1122,8 +1122,8 @@ window.chartRegistry.hldPaceChart = new Chart(document.getElementById('hldPaceCh
   data: {
     labels: ['Lennar 40', 'Lennar 45', 'Lennar 50'],
     datasets: [
-      { label: 'Avg Pace 2024', data: [16.86,14.29,10.86], backgroundColor: COLORS.hld, borderRadius: 4 },
-      { label: 'Avg Pace 2025', data: [17.33,14.42,10.83], backgroundColor: '#68d391', borderRadius: 4 },
+      { label: 'Avg Pace 2024', data: [16.86,14.29,10.86], backgroundColor: '#003552', borderRadius: 4 },
+      { label: 'Avg Pace 2025', data: [17.33,14.42,10.83], backgroundColor: '#38a169', borderRadius: 4 },
       { label: 'Avg Pace 2026 YTD (Jan–Mar)', data: [10.33,10.33,5.67], backgroundColor: '#f6ad55', borderRadius: 4 },
     ]
   },
@@ -1176,8 +1176,8 @@ window.chartRegistry.wrgPaceChart = new Chart(document.getElementById('wrgPaceCh
   data: {
     labels: ['Lennar 40','CastleRock 40','CR 45','KHov 45','Coventry 45','KHov 50','CR 50','Coventry 50'],
     datasets: [
-      { label: 'Avg Pace 2024', data: [5.08,0.42,1.58,2,0,1.42,1.75,0], backgroundColor: COLORS.wrg, borderRadius: 3 },
-      { label: 'Avg Pace 2025', data: [0,0.75,0.50,0.92,0.33,0.08,0.42,0.25], backgroundColor: '#fc8181', borderRadius: 3 },
+      { label: 'Avg Pace 2024', data: [5.08,0.42,1.58,2,0,1.42,1.75,0], backgroundColor: '#003552', borderRadius: 3 },
+      { label: 'Avg Pace 2025', data: [0,0.75,0.50,0.92,0.33,0.08,0.42,0.25], backgroundColor: '#38a169', borderRadius: 3 },
       { label: 'Avg Pace 2026 YTD (Jan–Mar)', data: [1,0,1.33,0,0.33,0,0,1.67], backgroundColor: '#f6ad55', borderRadius: 3 },
     ]
   },
@@ -2525,15 +2525,18 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
     const gpd2025Avg = computeYearlyAvg(gpdData, 2025);
     const hld2025Avg = computeYearlyAvg(hldData, 2025);
     const ytdMonthLabel = monthNames[currentMonth - 1];
+    // Compute 2026 YTD average from only 2026 months
+    const gpd2026Avg = computeYearlyAvg(gpdData, 2026);
+    const hld2026Avg = computeYearlyAvg(hldData, 2026);
 
     safeChart('ytdChart', {
       type: 'bar',
       data: {
         labels: ['GPD', 'Highlands'],
         datasets: [
-          { label: 'Avg Pace 2024', data: [gpd2024Avg.toFixed(1), hld2024Avg.toFixed(1)], backgroundColor: COLORS.tgp, borderRadius: 3 },
-          { label: 'Avg Pace 2025', data: [gpd2025Avg.toFixed(1), hld2025Avg.toFixed(1)], backgroundColor: '#003552', borderRadius: 3 },
-          { label: 'Avg Pace 2026 YTD (Jan–' + ytdMonthLabel + ')', data: [gpdAvgMo.toFixed(1), hldAvgMo.toFixed(1)], backgroundColor: '#f6ad55', borderRadius: 3 },
+          { label: 'Avg Pace 2024', data: [gpd2024Avg.toFixed(1), hld2024Avg.toFixed(1)], backgroundColor: '#003552', borderRadius: 3 },
+          { label: 'Avg Pace 2025', data: [gpd2025Avg.toFixed(1), hld2025Avg.toFixed(1)], backgroundColor: '#38a169', borderRadius: 3 },
+          { label: 'Avg Pace 2026 YTD (Jan–' + ytdMonthLabel + ')', data: [gpd2026Avg.toFixed(1), hld2026Avg.toFixed(1)], backgroundColor: '#f6ad55', borderRadius: 3 },
         ]
       },
       options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
@@ -2561,23 +2564,64 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
     // TGP Lot Chart
     const tgpLotLabels = Object.keys(gpdLots).sort();
     const tgpLotData = tgpLotLabels.map(lt => gpdLots[lt] || 0);
+    const lotColors = ['#003552','#38a169','#e67e22','#e53e3e','#805ad5'];
     safeChart('tgpLotChart', {
       type: 'bar',
       data: {
         labels: tgpLotLabels.map(lt => 'Lot ' + lt),
-        datasets: [{ label: 'Net Sales', data: tgpLotData, backgroundColor: COLORS.tgp, borderRadius: 3 }]
+        datasets: [{ label: 'Net Sales', data: tgpLotData, backgroundColor: tgpLotLabels.map((_, i) => lotColors[i % lotColors.length]), borderRadius: 3 }]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          datalabels: {
+            display: true, color: '#fff', anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 13 }
+          }
+        }
+      }
     });
 
+    // Helper: compute average pace by builder-lot combo
+    function computeBuilderPace(bm, currentYear, currentMonth) {
+      var results = {};
+      for (var bk in bm) {
+        var parts = bk.split('|');
+        var lot = parts[0];
+        var builder = parts[1];
+        var label = builder + ' ' + lot;
+        if (!results[label]) results[label] = { y2024: 0, m2024: 0, y2025: 0, m2025: 0, y2026: 0, m2026: 0 };
+        for (var mk in bm[bk]) {
+          var numKey = Number(mk);
+          var yr = Math.floor(numKey / 100);
+          var mo = numKey % 100;
+          var val = bm[bk][mk] || 0;
+          if (yr === 2024) { results[label].y2024 += val; results[label].m2024 = 12; }
+          else if (yr === 2025) { results[label].y2025 += val; results[label].m2025 = 12; }
+          else if (yr === 2026) { results[label].y2026 += val; results[label].m2026 = currentMonth; }
+        }
+      }
+      var labels = Object.keys(results).sort();
+      var data2024 = labels.map(l => results[l].m2024 > 0 ? +(results[l].y2024 / results[l].m2024).toFixed(2) : 0);
+      var data2025 = labels.map(l => results[l].m2025 > 0 ? +(results[l].y2025 / results[l].m2025).toFixed(2) : 0);
+      var data2026 = labels.map(l => results[l].m2026 > 0 ? +(results[l].y2026 / results[l].m2026).toFixed(2) : 0);
+      return { labels: labels, data2024: data2024, data2025: data2025, data2026: data2026 };
+    }
+
     // TGP Pace Chart
+    var tgpPace = computeBuilderPace(gpdBM, currentYear, currentMonth);
     safeChart('tgpPaceChart', {
       type: 'bar',
       data: {
-        labels: ['DWH 40', 'Perry 40', 'Village 45', 'Westin 45', 'Perry 50', 'DWH 50', 'Westin 60', 'Sitterle 60'],
-        datasets: [{ label: 'Avg Pace', data: [0,0,0,0,0,0,0,0], backgroundColor: COLORS.tgp, borderRadius: 3 }]
+        labels: tgpPace.labels,
+        datasets: [
+          { label: 'Avg Pace 2024', data: tgpPace.data2024, backgroundColor: '#003552', borderRadius: 3 },
+          { label: 'Avg Pace 2025', data: tgpPace.data2025, backgroundColor: '#38a169', borderRadius: 3 },
+          { label: 'Avg Pace 2026 YTD', data: tgpPace.data2026, backgroundColor: '#f6ad55', borderRadius: 3 },
+        ]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: true, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
     });
 
     // HLD Month Chart
@@ -2606,19 +2650,33 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       type: 'bar',
       data: {
         labels: hldLotLabels.map(lt => 'Lot ' + lt),
-        datasets: [{ label: 'Net Sales', data: hldLotData, backgroundColor: COLORS.hld, borderRadius: 3 }]
+        datasets: [{ label: 'Net Sales', data: hldLotData, backgroundColor: hldLotLabels.map((_, i) => lotColors[i % lotColors.length]), borderRadius: 3 }]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          datalabels: {
+            display: true, color: '#fff', anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 13 }
+          }
+        }
+      }
     });
 
     // HLD Pace Chart
+    var hldPace = computeBuilderPace(hldBM, currentYear, currentMonth);
     safeChart('hldPaceChart', {
       type: 'bar',
       data: {
-        labels: ['Lennar 40', 'Lennar 45', 'Lennar 50'],
-        datasets: [{ label: 'Avg Pace', data: [0,0,0], backgroundColor: COLORS.hld, borderRadius: 3 }]
+        labels: hldPace.labels,
+        datasets: [
+          { label: 'Avg Pace 2024', data: hldPace.data2024, backgroundColor: '#003552', borderRadius: 3 },
+          { label: 'Avg Pace 2025', data: hldPace.data2025, backgroundColor: '#38a169', borderRadius: 3 },
+          { label: 'Avg Pace 2026 YTD', data: hldPace.data2026, backgroundColor: '#f6ad55', borderRadius: 3 },
+        ]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: true, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
     });
 
     // WRG Month Chart
@@ -2647,19 +2705,33 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       type: 'bar',
       data: {
         labels: wrgLotLabels.map(lt => 'Lot ' + lt),
-        datasets: [{ label: 'Net Sales', data: wrgLotData, backgroundColor: COLORS.wrg, borderRadius: 3 }]
+        datasets: [{ label: 'Net Sales', data: wrgLotData, backgroundColor: wrgLotLabels.map((_, i) => lotColors[i % lotColors.length]), borderRadius: 3 }]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          datalabels: {
+            display: true, color: '#fff', anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 13 }
+          }
+        }
+      }
     });
 
     // WRG Pace Chart
+    var wrgPace = computeBuilderPace(wrgBM, currentYear, currentMonth);
     safeChart('wrgPaceChart', {
       type: 'bar',
       data: {
-        labels: ['Lennar 40', 'CR 40', 'CR 45', 'KHov 45', 'Coventry 45', 'KHov 50', 'CR 50', 'Coventry 50'],
-        datasets: [{ label: 'Avg Pace', data: [0,0,0,0,0,0,0,0], backgroundColor: COLORS.wrg, borderRadius: 3 }]
+        labels: wrgPace.labels,
+        datasets: [
+          { label: 'Avg Pace 2024', data: wrgPace.data2024, backgroundColor: '#003552', borderRadius: 3 },
+          { label: 'Avg Pace 2025', data: wrgPace.data2025, backgroundColor: '#38a169', borderRadius: 3 },
+          { label: 'Avg Pace 2026 YTD', data: wrgPace.data2026, backgroundColor: '#f6ad55', borderRadius: 3 },
+        ]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: true, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
     });
 
     // Pace Line Chart
