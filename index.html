@@ -961,7 +961,6 @@ window.chartRegistry.overviewChart = new Chart(document.getElementById('overview
     },
     plugins: {
       legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-      datalabels: { display: false },
       tooltip: {
         mode: 'index', intersect: false,
         callbacks: {
@@ -970,6 +969,11 @@ window.chartRegistry.overviewChart = new Chart(document.getElementById('overview
             return `Combined: ${total}`;
           }
         }
+      },
+      datalabels: {
+        display: function(ctx) { return ctx.dataset.data[ctx.dataIndex] > 0; },
+        color: '#fff', anchor: 'center', align: 'center',
+        font: { weight: 'bold', size: 10 }
       }
     }
   }
@@ -1030,39 +1034,31 @@ window.chartRegistry.tgpMonthChart = new Chart(document.getElementById('tgpMonth
 });
 
 window.chartRegistry.tgpLotChart = new Chart(document.getElementById('tgpLotChart'), {
-  type: 'doughnut',
+  type: 'bar',
   data: {
-    labels: ['40 ft (133)', '45 ft (148)', '50 ft (106)', '60 ft (51)'],
-    datasets: [{ data: [133, 148, 106, 51], backgroundColor: ['#003552','#38a169','#e67e22','#e53e3e'], borderWidth: 2 }]
+    labels: ['Lot 40', 'Lot 45', 'Lot 50', 'Lot 60'],
+    datasets: [{ label: 'Net Sales', data: [133, 148, 106, 51],
+      backgroundColor: ['#003552','#38a169','#e67e22','#e53e3e'], borderRadius: 3 }]
   },
-  options: {
-    ...baseOpts,
-    plugins: {
-      ...baseOpts.plugins,
-      datalabels: {
-        display: true,
-        color: '#fff',
-        font: { weight: 'bold', size: 13 },
-        formatter: (value, ctx) => {
-          const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-          return ((value / total) * 100).toFixed(1) + '%';
-        },
-      },
-    },
-  },
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } },
+    plugins: { ...baseOpts.plugins,
+      datalabels: { display: true, color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold', size: 13 } }
+    }
+  }
 });
 
 window.chartRegistry.tgpPaceChart = new Chart(document.getElementById('tgpPaceChart'), {
   type: 'bar',
   data: {
-    labels: ['DWH 40','Perry 40','Village 45','Westin 45','Perry 50','DWH 50','Westin 60','Sitterle 60'],
-    datasets: [
-      { label: 'Avg Pace 2024', data: [2.83,3.08,6.25,2,2.67,3.25,0.83,0.08], backgroundColor: '#003552', borderRadius: 3 },
-      { label: 'Avg Pace 2025', data: [2.08,2.33,0.25,2.75,1.17,0.50,2.17,0.50], backgroundColor: '#38a169', borderRadius: 3 },
-      { label: 'Avg Pace 2026 YTD (Jan–Mar)', data: [1.33,0,2.67,1.33,1.33,2,0,0.33], backgroundColor: '#f6ad55', borderRadius: 3 },
-    ]
+    labels: ['2024', '2025', '2026 YTD'],
+    datasets: [{ label: 'Avg Monthly Pace', data: [21.0, 12.0, 10.3],
+      backgroundColor: ['#003552', '#38a169', '#f6ad55'], borderRadius: 4 }]
   },
-  options: { ...baseOpts, scales: { x: { ticks: { font: { size: 10 } } }, y: { beginAtZero: true } } }
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } },
+    plugins: { ...baseOpts.plugins, legend: { display: false },
+      datalabels: { display: true, color: function(ctx) { return ctx.dataIndex === 2 ? '#000' : '#fff'; }, anchor: 'center', align: 'center', font: { weight: 'bold', size: 14 } }
+    }
+  }
 });
 
 // ── HIGHLANDS CHARTS ──────────────────────────────────────────────────────────
@@ -1095,39 +1091,31 @@ window.chartRegistry.hldMonthChart = new Chart(document.getElementById('hldMonth
 });
 
 window.chartRegistry.hldLotChart = new Chart(document.getElementById('hldLotChart'), {
-  type: 'doughnut',
+  type: 'bar',
   data: {
-    labels: ['40 ft (357)', '45 ft (304)', '50 ft (223)'],
-    datasets: [{ data: [357, 304, 223], backgroundColor: ['#003552','#38a169','#e67e22'], borderWidth: 2 }]
+    labels: ['Lot 40', 'Lot 45', 'Lot 50'],
+    datasets: [{ label: 'Net Sales', data: [357, 304, 223],
+      backgroundColor: ['#003552','#38a169','#e67e22'], borderRadius: 3 }]
   },
-  options: {
-    ...baseOpts,
-    plugins: {
-      ...baseOpts.plugins,
-      datalabels: {
-        display: true,
-        color: '#fff',
-        font: { weight: 'bold', size: 13 },
-        formatter: (value, ctx) => {
-          const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-          return ((value / total) * 100).toFixed(1) + '%';
-        },
-      },
-    },
-  },
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } },
+    plugins: { ...baseOpts.plugins,
+      datalabels: { display: true, color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold', size: 13 } }
+    }
+  }
 });
 
 window.chartRegistry.hldPaceChart = new Chart(document.getElementById('hldPaceChart'), {
   type: 'bar',
   data: {
-    labels: ['Lennar 40', 'Lennar 45', 'Lennar 50'],
-    datasets: [
-      { label: 'Avg Pace 2024', data: [16.86,14.29,10.86], backgroundColor: '#003552', borderRadius: 4 },
-      { label: 'Avg Pace 2025', data: [17.33,14.42,10.83], backgroundColor: '#38a169', borderRadius: 4 },
-      { label: 'Avg Pace 2026 YTD (Jan–Mar)', data: [10.33,10.33,5.67], backgroundColor: '#f6ad55', borderRadius: 4 },
-    ]
+    labels: ['2024', '2025', '2026 YTD'],
+    datasets: [{ label: 'Avg Monthly Pace', data: [42.0, 42.6, 26.3],
+      backgroundColor: ['#003552', '#38a169', '#f6ad55'], borderRadius: 4 }]
   },
-  options: { ...baseOpts, scales: { y: { beginAtZero: true } } }
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } },
+    plugins: { ...baseOpts.plugins, legend: { display: false },
+      datalabels: { display: true, color: function(ctx) { return ctx.dataIndex === 2 ? '#000' : '#fff'; }, anchor: 'center', align: 'center', font: { weight: 'bold', size: 14 } }
+    }
+  }
 });
 
 // ── WRG CHARTS ────────────────────────────────────────────────────────────────
@@ -1149,39 +1137,31 @@ window.chartRegistry.wrgMonthChart = new Chart(document.getElementById('wrgMonth
 });
 
 window.chartRegistry.wrgLotChart = new Chart(document.getElementById('wrgLotChart'), {
-  type: 'doughnut',
+  type: 'bar',
   data: {
-    labels: ['40 ft (78)', '45 ft (110)', '50 ft (96)'],
-    datasets: [{ data: [78, 110, 96], backgroundColor: ['#003552','#38a169','#e67e22'], borderWidth: 2 }]
+    labels: ['Lot 40', 'Lot 45', 'Lot 50'],
+    datasets: [{ label: 'Net Sales', data: [78, 110, 96],
+      backgroundColor: ['#003552','#38a169','#e67e22'], borderRadius: 3 }]
   },
-  options: {
-    ...baseOpts,
-    plugins: {
-      ...baseOpts.plugins,
-      datalabels: {
-        display: true,
-        color: '#fff',
-        font: { weight: 'bold', size: 13 },
-        formatter: (value, ctx) => {
-          const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-          return ((value / total) * 100).toFixed(1) + '%';
-        },
-      },
-    },
-  },
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } },
+    plugins: { ...baseOpts.plugins,
+      datalabels: { display: true, color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold', size: 13 } }
+    }
+  }
 });
 
 window.chartRegistry.wrgPaceChart = new Chart(document.getElementById('wrgPaceChart'), {
   type: 'bar',
   data: {
-    labels: ['Lennar 40','CastleRock 40','CR 45','KHov 45','Coventry 45','KHov 50','CR 50','Coventry 50'],
-    datasets: [
-      { label: 'Avg Pace 2024', data: [5.08,0.42,1.58,2,0,1.42,1.75,0], backgroundColor: '#003552', borderRadius: 3 },
-      { label: 'Avg Pace 2025', data: [0,0.75,0.50,0.92,0.33,0.08,0.42,0.25], backgroundColor: '#38a169', borderRadius: 3 },
-      { label: 'Avg Pace 2026 YTD (Jan–Mar)', data: [1,0,1.33,0,0.33,0,0,1.67], backgroundColor: '#f6ad55', borderRadius: 3 },
-    ]
+    labels: ['2024', '2025', '2026 YTD'],
+    datasets: [{ label: 'Avg Monthly Pace', data: [10.2, 2.9, 6.0],
+      backgroundColor: ['#003552', '#38a169', '#f6ad55'], borderRadius: 4 }]
   },
-  options: { ...baseOpts, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } },
+    plugins: { ...baseOpts.plugins, legend: { display: false },
+      datalabels: { display: true, color: function(ctx) { return ctx.dataIndex === 2 ? '#000' : '#fff'; }, anchor: 'center', align: 'center', font: { weight: 'bold', size: 14 } }
+    }
+  }
 });
 
 // ── MONTHLY PACE LINE CHART + TABLE ──────────────────────────────────────────
@@ -2477,7 +2457,12 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
         },
         plugins: {
           legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-          tooltip: { mode: 'index', intersect: false, callbacks: { footer: (items) => `Combined: ${items.reduce((s, i) => s + i.parsed.y, 0)}` } }
+          tooltip: { mode: 'index', intersect: false, callbacks: { footer: (items) => `Combined: ${items.reduce((s, i) => s + i.parsed.y, 0)}` } },
+          datalabels: {
+            display: function(ctx) { return ctx.dataset.data[ctx.dataIndex] > 0; },
+            color: '#fff', anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 10 }
+          }
         }
       }
     });
@@ -2504,42 +2489,55 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       }
     });
 
-    // YTD Chart — compute avg pace per year (keys are year*100+month, e.g. 202401)
-    function computeYearlyAvg(data, year) {
-      let total = 0; let months = 0;
-      for (let m = 1; m <= 12; m++) {
-        const k = year * 100 + m;
-        if (data.net[k] !== undefined && data.net[k] !== null) {
-          total += data.net[k];
-          months++;
-        }
+    // YTD Chart — compute community pace per year — only count months with actual activity
+    function computeCommunityPace(data, year, maxMonth) {
+      var total = 0; var months = 0;
+      var limit = maxMonth || 12;
+      for (var m = 1; m <= limit; m++) {
+        var k = year * 100 + m;
+        var hasActivity = (data.gross[k] > 0) || (data.canc[k] > 0);
+        if (hasActivity) { total += (data.net[k] || 0); months++; }
       }
       return months > 0 ? total / months : 0;
     }
-    // For 2024: GPD had sales all year (12 months), HLD started Jun so count from Jun-Dec (7 months)
-    const gpd2024Total = [1,2,3,4,5,6,7,8,9,10,11,12].reduce((s,m) => s + (gpdData.net[2024*100+m] || 0), 0);
-    const gpd2024Avg = gpd2024Total / 12;
-    const hld2024Total = [6,7,8,9,10,11,12].reduce((s,m) => s + (hldData.net[2024*100+m] || 0), 0);
-    const hld2024Months = [6,7,8,9,10,11,12].filter(m => hldData.net[2024*100+m] !== undefined).length || 7;
-    const hld2024Avg = hld2024Total / hld2024Months;
-    const gpd2025Avg = computeYearlyAvg(gpdData, 2025);
-    const hld2025Avg = computeYearlyAvg(hldData, 2025);
-    const ytdMonthLabel = monthNames[currentMonth - 1];
-    // Compute 2026 YTD average from only 2026 months
-    const gpd2026Avg = computeYearlyAvg(gpdData, 2026);
-    const hld2026Avg = computeYearlyAvg(hldData, 2026);
+    var lastCompleteMonth = currentMonth - 1;
+    if (lastCompleteMonth < 1) lastCompleteMonth = currentMonth;
+    var gpd2024Pace = computeCommunityPace(gpdData, 2024, 12);
+    var gpd2025Pace = computeCommunityPace(gpdData, 2025, 12);
+    var gpd2026Pace = computeCommunityPace(gpdData, 2026, lastCompleteMonth);
+    var hld2024Pace = computeCommunityPace(hldData, 2024, 12);
+    var hld2025Pace = computeCommunityPace(hldData, 2025, 12);
+    var hld2026Pace = computeCommunityPace(hldData, 2026, lastCompleteMonth);
+    var wrg2024Pace = computeCommunityPace(wrgData, 2024, 12);
+    var wrg2025Pace = computeCommunityPace(wrgData, 2025, 12);
+    var wrg2026Pace = computeCommunityPace(wrgData, 2026, lastCompleteMonth);
+    var ytdMonthLabel = monthNames[lastCompleteMonth - 1];
 
     safeChart('ytdChart', {
       type: 'bar',
       data: {
         labels: ['GPD', 'Highlands'],
         datasets: [
-          { label: 'Avg Pace 2024', data: [gpd2024Avg.toFixed(1), hld2024Avg.toFixed(1)], backgroundColor: '#003552', borderRadius: 3 },
-          { label: 'Avg Pace 2025', data: [gpd2025Avg.toFixed(1), hld2025Avg.toFixed(1)], backgroundColor: '#38a169', borderRadius: 3 },
-          { label: 'Avg Pace 2026 YTD (Jan–' + ytdMonthLabel + ')', data: [gpd2026Avg.toFixed(1), hld2026Avg.toFixed(1)], backgroundColor: '#f6ad55', borderRadius: 3 },
+          { label: 'Avg Pace 2024', data: [gpd2024Pace.toFixed(1), hld2024Pace.toFixed(1)], backgroundColor: '#003552', borderRadius: 3 },
+          { label: 'Avg Pace 2025', data: [gpd2025Pace.toFixed(1), hld2025Pace.toFixed(1)], backgroundColor: '#38a169', borderRadius: 3 },
+          { label: 'Avg Pace 2026 YTD (Jan\u2013' + ytdMonthLabel + ')', data: [gpd2026Pace.toFixed(1), hld2026Pace.toFixed(1)], backgroundColor: '#f6ad55', borderRadius: 3 },
         ]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          datalabels: {
+            display: true,
+            color: function(ctx) {
+              var bgColor = ctx.dataset.backgroundColor;
+              return (bgColor === '#f6ad55' || bgColor === '#e67e22') ? '#000' : '#fff';
+            },
+            anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 12 }
+          }
+        }
+      }
     });
 
     // TGP Month Chart
@@ -2609,19 +2607,27 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       return { labels: labels, data2024: data2024, data2025: data2025, data2026: data2026 };
     }
 
-    // TGP Pace Chart
-    var tgpPace = computeBuilderPace(gpdBM, currentYear, currentMonth);
+    // TGP Pace Chart — by year, not by builder
     safeChart('tgpPaceChart', {
       type: 'bar',
       data: {
-        labels: tgpPace.labels,
-        datasets: [
-          { label: 'Avg Pace 2024', data: tgpPace.data2024, backgroundColor: '#003552', borderRadius: 3 },
-          { label: 'Avg Pace 2025', data: tgpPace.data2025, backgroundColor: '#38a169', borderRadius: 3 },
-          { label: 'Avg Pace 2026 YTD', data: tgpPace.data2026, backgroundColor: '#f6ad55', borderRadius: 3 },
-        ]
+        labels: ['2024', '2025', '2026 YTD'],
+        datasets: [{ label: 'Avg Monthly Pace', data: [gpd2024Pace.toFixed(1), gpd2025Pace.toFixed(1), gpd2026Pace.toFixed(1)],
+          backgroundColor: ['#003552', '#38a169', '#f6ad55'], borderRadius: 4 }]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            display: true,
+            color: function(ctx) { return ctx.dataIndex === 2 ? '#000' : '#fff'; },
+            anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 14 }
+          }
+        }
+      }
     });
 
     // HLD Month Chart
@@ -2664,19 +2670,27 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       }
     });
 
-    // HLD Pace Chart
-    var hldPace = computeBuilderPace(hldBM, currentYear, currentMonth);
+    // HLD Pace Chart — by year
     safeChart('hldPaceChart', {
       type: 'bar',
       data: {
-        labels: hldPace.labels,
-        datasets: [
-          { label: 'Avg Pace 2024', data: hldPace.data2024, backgroundColor: '#003552', borderRadius: 3 },
-          { label: 'Avg Pace 2025', data: hldPace.data2025, backgroundColor: '#38a169', borderRadius: 3 },
-          { label: 'Avg Pace 2026 YTD', data: hldPace.data2026, backgroundColor: '#f6ad55', borderRadius: 3 },
-        ]
+        labels: ['2024', '2025', '2026 YTD'],
+        datasets: [{ label: 'Avg Monthly Pace', data: [hld2024Pace.toFixed(1), hld2025Pace.toFixed(1), hld2026Pace.toFixed(1)],
+          backgroundColor: ['#003552', '#38a169', '#f6ad55'], borderRadius: 4 }]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            display: true,
+            color: function(ctx) { return ctx.dataIndex === 2 ? '#000' : '#fff'; },
+            anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 14 }
+          }
+        }
+      }
     });
 
     // WRG Month Chart
@@ -2719,19 +2733,27 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       }
     });
 
-    // WRG Pace Chart
-    var wrgPace = computeBuilderPace(wrgBM, currentYear, currentMonth);
+    // WRG Pace Chart — by year
     safeChart('wrgPaceChart', {
       type: 'bar',
       data: {
-        labels: wrgPace.labels,
-        datasets: [
-          { label: 'Avg Pace 2024', data: wrgPace.data2024, backgroundColor: '#003552', borderRadius: 3 },
-          { label: 'Avg Pace 2025', data: wrgPace.data2025, backgroundColor: '#38a169', borderRadius: 3 },
-          { label: 'Avg Pace 2026 YTD', data: wrgPace.data2026, backgroundColor: '#f6ad55', borderRadius: 3 },
-        ]
+        labels: ['2024', '2025', '2026 YTD'],
+        datasets: [{ label: 'Avg Monthly Pace', data: [wrg2024Pace.toFixed(1), wrg2025Pace.toFixed(1), wrg2026Pace.toFixed(1)],
+          backgroundColor: ['#003552', '#38a169', '#f6ad55'], borderRadius: 4 }]
       },
-      options: { responsive: true, maintainAspectRatio: true, scales: { x: { ticks: { font: { size: 9 } } }, y: { beginAtZero: true } } }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            display: true,
+            color: function(ctx) { return ctx.dataIndex === 2 ? '#000' : '#fff'; },
+            anchor: 'center', align: 'center',
+            font: { weight: 'bold', size: 14 }
+          }
+        }
+      }
     });
 
     // Pace Line Chart
