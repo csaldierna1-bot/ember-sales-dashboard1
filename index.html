@@ -2504,13 +2504,36 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       }
     });
 
-    // YTD Chart
+    // YTD Chart — compute avg pace per year
+    function computeYearlyAvg(data, year) {
+      let total = 0; let months = 0;
+      for (let m = 1; m <= 12; m++) {
+        const k = year + '-' + String(m).padStart(2, '0');
+        if (data.net[k] !== undefined && data.net[k] !== null) {
+          total += data.net[k];
+          months++;
+        }
+      }
+      return months > 0 ? total / months : 0;
+    }
+    // For 2024: GPD had sales all year (12 months), HLD started Jun so count from Jun-Dec (7 months)
+    const gpd2024Total = [1,2,3,4,5,6,7,8,9,10,11,12].reduce((s,m) => s + (gpdData.net['2024-'+String(m).padStart(2,'0')] || 0), 0);
+    const gpd2024Avg = gpd2024Total / 12;
+    const hld2024Total = [6,7,8,9,10,11,12].reduce((s,m) => s + (hldData.net['2024-'+String(m).padStart(2,'0')] || 0), 0);
+    const hld2024Months = [6,7,8,9,10,11,12].filter(m => hldData.net['2024-'+String(m).padStart(2,'0')] !== undefined).length || 7;
+    const hld2024Avg = hld2024Total / hld2024Months;
+    const gpd2025Avg = computeYearlyAvg(gpdData, 2025);
+    const hld2025Avg = computeYearlyAvg(hldData, 2025);
+    const ytdMonthLabel = monthNames[currentMonth - 1];
+
     safeChart('ytdChart', {
       type: 'bar',
       data: {
         labels: ['GPD', 'Highlands'],
         datasets: [
-          { label: 'YTD Avg ' + monthNames[currentMonth-1], data: [gpdAvgMo.toFixed(2), hldAvgMo.toFixed(2)], backgroundColor: '#f6ad55', borderRadius: 3 },
+          { label: 'Avg Pace 2024', data: [gpd2024Avg.toFixed(1), hld2024Avg.toFixed(1)], backgroundColor: COLORS.tgp, borderRadius: 3 },
+          { label: 'Avg Pace 2025', data: [gpd2025Avg.toFixed(1), hld2025Avg.toFixed(1)], backgroundColor: '#003552', borderRadius: 3 },
+          { label: 'Avg Pace 2026 YTD (Jan–' + ytdMonthLabel + ')', data: [gpdAvgMo.toFixed(1), hldAvgMo.toFixed(1)], backgroundColor: '#f6ad55', borderRadius: 3 },
         ]
       },
       options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
@@ -2655,46 +2678,130 @@ function processImportedData(grossRows, cancelRows, currentYear, currentMonth, d
       options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
     });
 
-    // Seasonality Chart
+    // Seasonality Chart — year-over-year lines from imported data
     const seasonalityLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const seasonYears = [2023, 2024, 2025, 2026];
+    const seasonPalette = {
+      2023: { border: '#a0aec0', bg: 'rgba(160,174,192,.15)' },
+      2024: { border: '#003552', bg: 'rgba(0,53,82,.12)' },
+      2025: { border: '#48bb78', bg: 'rgba(72,187,120,.12)' },
+      2026: { border: '#fc8181', bg: 'rgba(252,129,129,.15)' },
+    };
+
+    function getYearMonthNet(data, year) {
+      return seasonalityLabels.map((_, i) => {
+        const k = year + '-' + String(i + 1).padStart(2, '0');
+        const v = data.net[k];
+        return (v !== undefined && v !== null) ? v : null;
+      });
+    }
+
+    // Combined (GPD + HLD) seasonality
+    const combinedSeason = {};
+    seasonYears.forEach(yr => {
+      const g = getYearMonthNet(gpdData, yr);
+      const h = getYearMonthNet(hldData, yr);
+      combinedSeason[yr] = seasonalityLabels.map((_, i) => {
+        if (g[i] === null && h[i] === null) return null;
+        return (g[i] || 0) + (h[i] || 0);
+      });
+    });
+
     safeChart('seasonalityChart', {
       type: 'line',
       data: {
         labels: seasonalityLabels,
-        datasets: [
-          { label: 'GPD Avg', data: [0,0,0,0,0,0,0,0,0,0,0,0], borderColor: COLORS.tgp, backgroundColor: COLORS.tgpLight, fill: true, tension: 0.3, pointRadius: 2 },
-          { label: 'HLD Avg', data: [0,0,0,0,0,0,0,0,0,0,0,0], borderColor: COLORS.hld, backgroundColor: COLORS.hldLight, fill: true, tension: 0.3, pointRadius: 2 }
-        ]
+        datasets: seasonYears.map(yr => ({
+          label: String(yr),
+          data: combinedSeason[yr],
+          borderColor: seasonPalette[yr].border,
+          backgroundColor: seasonPalette[yr].bg,
+          borderWidth: yr === 2026 ? 3 : 2,
+          pointRadius: function(ctx) { return (ctx.parsed && ctx.parsed.y !== null && ctx.parsed.y < 0) ? 9 : 5; },
+          pointHoverRadius: 7,
+          pointBackgroundColor: function(ctx) { return (ctx.parsed && ctx.parsed.y !== null && ctx.parsed.y < 0) ? '#e53e3e' : seasonPalette[yr].border; },
+          pointBorderColor: function(ctx) { return (ctx.parsed && ctx.parsed.y !== null && ctx.parsed.y < 0) ? '#c53030' : seasonPalette[yr].border; },
+          pointStyle: function(ctx) { return (ctx.parsed && ctx.parsed.y !== null && ctx.parsed.y < 0) ? 'triangle' : 'circle'; },
+          segment: {
+            borderColor: function(ctx) { return (ctx.p0.parsed.y < 0 || ctx.p1.parsed.y < 0) ? '#e53e3e' : undefined; },
+            borderDash: function(ctx) { return (ctx.p0.parsed.y < 0 || ctx.p1.parsed.y < 0) ? [4,3] : undefined; },
+          },
+          fill: false,
+          tension: 0.3,
+          spanGaps: false,
+        }))
       },
-      options: { responsive: true, maintainAspectRatio: true }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Net Sales (homes)', color: '#000' }, ticks: { color: '#000' }, grid: { color: 'rgba(0,0,0,.08)' } },
+          x: { title: { display: true, text: 'Month', color: '#000' }, ticks: { color: '#000' }, grid: { color: 'rgba(0,0,0,.08)' } }
+        },
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 14, font: { size: 12 }, color: '#000' } },
+          tooltip: { mode: 'index', intersect: false, callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y + ' homes' : '—'); } } }
+        }
+      }
     });
 
-    // Community Seasonality Charts
+    // Community Seasonality Charts — GPD
+    const gpdSeasonData = {};
+    seasonYears.forEach(yr => { gpdSeasonData[yr] = getYearMonthNet(gpdData, yr); });
     safeChart('tgpSeasonalityChart', {
       type: 'line',
       data: {
         labels: seasonalityLabels,
-        datasets: [{ label: 'Avg', data: [0,0,0,0,0,0,0,0,0,0,0,0], borderColor: COLORS.tgp, backgroundColor: COLORS.tgpLight, fill: true, tension: 0.3 }]
+        datasets: seasonYears.map(yr => ({
+          label: String(yr), data: gpdSeasonData[yr],
+          borderColor: seasonPalette[yr].border, backgroundColor: seasonPalette[yr].bg,
+          borderWidth: yr === 2026 ? 3 : 2, pointRadius: 4, fill: false, tension: 0.3, spanGaps: false,
+        }))
       },
-      options: { responsive: true, maintainAspectRatio: true }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Net Sales' } }, x: { ticks: { color: '#000' } } },
+        plugins: { legend: { position: 'top', labels: { boxWidth: 14, font: { size: 12 } } }, tooltip: { mode: 'index', intersect: false } }
+      }
     });
 
+    // Community Seasonality — Highlands
+    const hldSeasonData = {};
+    seasonYears.forEach(yr => { hldSeasonData[yr] = getYearMonthNet(hldData, yr); });
     safeChart('hldSeasonalityChart', {
       type: 'line',
       data: {
         labels: seasonalityLabels,
-        datasets: [{ label: 'Avg', data: [0,0,0,0,0,0,0,0,0,0,0,0], borderColor: COLORS.hld, backgroundColor: COLORS.hldLight, fill: true, tension: 0.3 }]
+        datasets: seasonYears.map(yr => ({
+          label: String(yr), data: hldSeasonData[yr],
+          borderColor: seasonPalette[yr].border, backgroundColor: seasonPalette[yr].bg,
+          borderWidth: yr === 2026 ? 3 : 2, pointRadius: 4, fill: false, tension: 0.3, spanGaps: false,
+        }))
       },
-      options: { responsive: true, maintainAspectRatio: true }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Net Sales' } }, x: { ticks: { color: '#000' } } },
+        plugins: { legend: { position: 'top', labels: { boxWidth: 14, font: { size: 12 } } }, tooltip: { mode: 'index', intersect: false } }
+      }
     });
 
+    // Community Seasonality — Windrose Green
+    const wrgSeasonData = {};
+    seasonYears.forEach(yr => { wrgSeasonData[yr] = getYearMonthNet(wrgData, yr); });
     safeChart('wrgSeasonalityChart', {
       type: 'line',
       data: {
         labels: seasonalityLabels,
-        datasets: [{ label: 'Avg', data: [0,0,0,0,0,0,0,0,0,0,0,0], borderColor: COLORS.wrg, backgroundColor: COLORS.wrgLight, fill: true, tension: 0.3 }]
+        datasets: seasonYears.map(yr => ({
+          label: String(yr), data: wrgSeasonData[yr],
+          borderColor: seasonPalette[yr].border, backgroundColor: seasonPalette[yr].bg,
+          borderWidth: yr === 2026 ? 3 : 2, pointRadius: 4, fill: false, tension: 0.3, spanGaps: false,
+        }))
       },
-      options: { responsive: true, maintainAspectRatio: true }
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Net Sales' } }, x: { ticks: { color: '#000' } } },
+        plugins: { legend: { position: 'top', labels: { boxWidth: 14, font: { size: 12 } } }, tooltip: { mode: 'index', intersect: false } }
+      }
     });
 
     // Projection Chart
